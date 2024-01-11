@@ -1,0 +1,61 @@
+// table schema for reference 
+
+CREATE TABLE employee_profile_table (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_no INT UNIQUE,
+    employee_name VARCHAR(15),
+    ic_no INT
+);
+
+CREATE TABLE job_profile_table (
+    job_id INT AUTO_INCREMENT PRIMARY KEY,
+    job_name VARCHAR(30)
+);
+
+CREATE TABLE employee_job_table (
+	employee_id INT,
+	job_id INT,
+    effective_date DATE,
+    FOREIGN KEY (employee_id) REFERENCES employee_profile_table (employee_id),
+    FOREIGN KEY (job_id) REFERENCES job_profile_table (job_id),
+    PRIMARY KEY (employee_id,job_id)
+);
+
+
+a. update the employee with employee_no 1002 job to 4, with effective 2020-01-01.
+
+INSERT INTO employee_job_table (employee_id ,job_id, effective_date) VALUES
+( (SELECT employee_id FROM employee_profile_table WHERE employee_no = 1002), 4 , '2020-01-01');
+
+
+b. list out the employee name, employee no, effective date, job title.
+
+SELECT e.employee_name ,
+ e.employee_no, 
+ j.job_name,
+ ej. effective_date
+ FROM employee_profile_table e JOIN employee_job_table ej
+ ON e.employee_id = ej.employee_id 
+ JOIN job_profile_table j 
+ ON ej.job_id = j.job_id ;
+
+
+c. list out the employee name, employee no, latest job title
+ 
+SELECT e.employee_name,e.employee_no,j.job_name
+FROM employee_profile_table e
+JOIN employee_job_table ej 
+ON e.employee_id = ej.employee_id
+JOIN job_profile_table j 
+ON ej.job_id = j.job_id
+WHERE
+    (ej.employee_id, ej.effective_date) IN (
+        SELECT employee_id, MAX(effective_date) AS max_effective_date
+        FROM employee_job_table GROUP BY employee_id
+    );
+    
+d. delete all employee with employee_no 1000 job title, with effective date of 2020-01-01
+
+DELETE FROM employee_job_table WHERE 
+employee_id = ( SELECT employee_id FROM employee_profile_table WHERE employee_no = 1000 )
+AND effective_date = '2020-01-01';
